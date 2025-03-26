@@ -1,0 +1,12 @@
+name: fnds_monorepo
+publish_to: none
+environment:
+  sdk: ^3.6.0
+
+workspace:
+  - packages/fnds_kit
+  - apps/demo
+  - apps/fnds_cli
+  
+dev_dependencies:
+  melos: ^6.3.2

@@ -1,0 +1,15 @@
+name: fnds_monorepo
+
+packages:
+  - apps/**
+  - packages/**
+
+scripts:
+  debug-demo:
+    name: debug-demo
+    description: Run Debug Mode for Demo
+    run: melos exec --scope demo -- flutter run
+  debug-cli:
+    name: debug-cli
+    description: Run Debug Mode for CLI
+    run: melos exec --scope fnds_cli -- dart run
