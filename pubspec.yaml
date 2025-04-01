@@ -5,8 +5,9 @@ environment:
 
 workspace:
   - packages/fnds_kit
+  - packages/fnds_cli
   - apps/demo
-  - apps/fnds_cli
+  - apps/cli
   
 dev_dependencies:
   melos: ^6.3.2

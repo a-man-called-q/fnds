@@ -12,4 +12,5 @@ scripts:
   debug-cli:
     name: debug-cli
     description: Run Debug Mode for CLI
-    run: melos exec --scope fnds_cli -- dart run
+    run: melos exec --scope cli -- dart run
+    
