@@ -1,6 +1,6 @@
 part of 'utils.dart';
 
-Future<String> getName() async {
+Future<String> getProfileName() async {
   String? fullName;
 
   if (Platform.isWindows) {

@@ -11,51 +11,60 @@ StateManager<String> dir = StateManager<String>('');
 StateManager<String> stateManager = StateManager<String>('');
 void dialogues() {
   ask<String>(
-    label: () => print(chalk.black.onMagenta.bold(' dir ')),
+    label: chalk.black.onMagenta.bold(' dir '),
     question: () => print('Where do you want to put the project: '),
     defaultValue: generateProjectName(),
     gap: 2,
     width: 20,
-    callback: (value) => dir.update(value),
+    callback: (result) => dir.update(result.value),
+  );
+
+  confirm(
+    label: chalk.black.onMagenta.bold(' dir '),
+    question: () => print('Where do you want to put the project: '),
+    defaultValue: true,
+    gap: 2,
+    width: 20,
+    callback: (result) => print(result.value.toString()),
   );
 
   select(
-    label: () => print(chalk.black.onGreen.bold(' state_manager ')),
+    label: chalk.black.onGreen.bold(' state_manager '),
     question: () => print("Select your favorite fruit:"),
     options: ["Apple", "Banana", "Cherry"],
     recommendedOption: "Banana",
     width: 20,
     gap: 2,
-    callback: (value) => stateManager.update(value),
+    callback: (result) => stateManager.update(result.value),
   );
 
   ask<String>(
-    label: () => print(chalk.black.onMagenta.bold(' dir ')),
+    label: chalk.black.onMagenta.bold(' dir '),
     question: () => print('Where do you want to put the project: '),
     defaultValue: generateProjectName(),
     gap: 2,
     width: 20,
-    callback: (value) => dir.update(value),
+    callback: (result) => dir.update(result.value),
   );
 
   ask<String>(
-    label: () => print(chalk.black.onMagenta.bold(' dir ')),
+    label: chalk.black.onMagenta.bold(' dir '),
     question: () => print('This is password: '),
     defaultValue: 'secret-or-us',
     isSecretive: true,
     gap: 2,
     width: 20,
-    callback: (value) => dir.update(value),
+    callback: (result) => dir.update(result.value),
   );
 
   List<String> selectedFruits = multipleSelect(
-    label: () => print(chalk.black.onGreen.bold(' state_manager ')),
+    label: chalk.black.onGreen.bold(' state_manager '),
     question: () => print('Select your favorite fruits multiple:'),
     options: ["Apple", "Banana", "Cherry"],
     gap: 2,
     width: 20,
-    callback: (selected) {
-      print('Selected fruits: ${selected.join(", ")}');
+    callback: (result) {
+      print('Selected fruits: ${result.selectedOptions.join(", ")}');
     },
   );
 

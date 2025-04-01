@@ -1,23 +1,37 @@
 part of 'inputs.dart';
 
-String select({
-  Function()? label,
+T select<T>({
+  String? label,
   required Function() question,
-  required List<String> options,
-  String recommendedOption = '',
+  List<String>? optionLabels,
+  required List<T> options,
+  T? recommendedOption,
   int width = 0,
   int gap = 0,
-  Function(String value)? callback,
+  Function(SingleCLIState value)? callback,
   String recommendedText = '\x1B[38;5;240m(recommended)\x1B[0m',
-  Indicators indicator = const Indicators(),
+  Indicators indicators = const Indicators(),
 }) {
-  final int selectedIndex = options.indexOf(recommendedOption);
+  if (optionLabels != null && optionLabels.length != options.length) {
+    throw ArgumentError('optionLabels and options must have the same length');
+  }
+  if (recommendedOption != null && !options.contains(recommendedOption)) {
+    throw ArgumentError('recommendedOption must be one of the options');
+  }
+
+  final int selectedIndex =
+      recommendedOption != null ? options.indexOf(recommendedOption) : -1;
   int currentIndex = selectedIndex == -1 ? 0 : selectedIndex;
 
   stdin.echoMode = false;
   stdin.lineMode = false;
 
-  _renderQuestion(label, question, width, gap);
+  _renderQuestion(
+    label: () => print(label),
+    question: question,
+    width: IntWidth(width),
+    gap: gap,
+  );
 
   final int padding = width + gap;
   final int optionCount = options.length;
@@ -26,12 +40,13 @@ String select({
 
   while (true) {
     _renderOptions(
-      options,
-      currentIndex,
-      padding,
-      recommendedOption,
-      indicator,
-      recommendedText,
+      options: options,
+      optionLabels: optionLabels,
+      currentIndex: currentIndex,
+      padding: padding,
+      recommendedOption: recommendedOption,
+      indicators: indicators,
+      recommendedText: recommendedText,
     );
 
     final input = _readKey();
@@ -54,38 +69,7 @@ String select({
   stdin.lineMode = true;
   stdin.echoMode = true;
 
-  final selectedValue = options[currentIndex];
-  callback?.call(selectedValue);
+  final T selectedValue = options[currentIndex];
+  callback?.call(SingleCLIState<T>(label, selectedValue));
   return selectedValue;
-}
-
-void _clearOptions(int lines) {
-  for (int i = 0; i < lines; i++) {
-    stdout.write('\x1B[1A\x1B[2K');
-  }
-}
-
-void _renderOptions<String>(
-  List<String> options,
-  int currentIndex,
-  int padding,
-  String recommendedOption,
-  Indicators indicators,
-  String recommendedText,
-) {
-  for (int i = 0; i < options.length; i++) {
-    final isSelected = i == currentIndex;
-    final isRecommended = options[i] == recommendedOption;
-
-    final indicator =
-        isSelected ? indicators.selectedIndicator : indicators.defaultIndicator;
-
-    var optionStringext = '$indicator ${options[i]}';
-
-    if (isRecommended) {
-      optionStringext += ' $recommendedText';
-    }
-
-    print('${' ' * padding}$optionStringext');
-  }
 }

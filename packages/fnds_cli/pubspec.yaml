@@ -1,5 +1,5 @@
 name: fnds_cli
-description: Another starting point for interactive CLI using Dart.
+description: Another starting point for interactive CLI using Dart, inspired by AstroJS CLI.
 resolution: workspace
 version: 1.0.0
 publish_to: none

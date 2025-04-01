@@ -2,18 +2,18 @@ part of 'layouts.dart';
 
 void row(
   List<Function()> columns, {
-  List<dynamic> widths = const [],
+  List<Width> widths = const [], // Change to List<Width>
   List<String> aligns = const [],
   int gap = 2,
 }) {
   // Capture outputs
   List<String> outputs =
       columns.map((fn) {
-        var buffer = StringBuffer();
+        StringBuffer buffer = StringBuffer();
         Zone.current
             .fork(
               specification: ZoneSpecification(
-                print: (_, __, ___, line) => buffer.writeln(line),
+                print: (_, __, ___, line) => buffer.write(line),
               ),
             )
             .run(fn);
@@ -21,12 +21,27 @@ void row(
       }).toList();
 
   int totalWidth = stdout.terminalColumns - (gap * (columns.length - 1));
-  int assignedWidth = widths.whereType<int>().fold(0, (a, b) => a + b);
-  int autoCount = widths.where((w) => w == 'auto').length;
+  int assignedWidth = 0;
+  int autoCount = 0;
+
+  for (final width in widths) {
+    if (width is IntWidth) {
+      assignedWidth += width.value;
+    } else if (width is AutoWidth) {
+      autoCount++;
+    }
+  }
+
   int autoWidth = autoCount > 0 ? (totalWidth - assignedWidth) ~/ autoCount : 0;
 
   List<int> resolvedWidths =
-      widths.map((w) => w == 'auto' ? autoWidth : w as int).toList();
+      widths.map((width) {
+        if (width is IntWidth) {
+          return width.value;
+        } else {
+          return autoWidth;
+        }
+      }).toList();
 
   // Format columns
   List<String> formattedColumns = List.generate(columns.length, (i) {
