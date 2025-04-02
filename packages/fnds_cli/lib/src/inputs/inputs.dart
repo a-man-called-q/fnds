@@ -1,7 +1,4 @@
-import 'dart:async';
 import 'dart:io';
-
-import 'package:ansi_strip/ansi_strip.dart';
 
 import '../layouts/layouts.dart';
 import '../utils/utils.dart';
