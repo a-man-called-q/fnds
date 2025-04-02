@@ -2,7 +2,6 @@ name: fnds_cli
 description: Another starting point for interactive CLI using Dart, inspired by AstroJS CLI.
 resolution: workspace
 version: 0.2.0
-publish_to: none
 repository: https://github.com/a-man-called-q/fnds
 
 environment:
