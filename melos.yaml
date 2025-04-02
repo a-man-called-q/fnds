@@ -9,8 +9,11 @@ scripts:
     name: debug-demo
     description: Run Debug Mode for Demo
     run: melos exec --scope demo -- flutter run
-  debug-cli:
-    name: debug-cli
-    description: Run Debug Mode for CLI
-    run: melos exec --scope cli -- dart run
-    
+  dry-publish-cli:
+    name: dry-publish-cli
+    description: Dry run publish for CLI
+    run: melos exec --scope fnds_cli -- dart pub publish --dry-run
+  publish-cli:
+    name: publish-cli
+    description: run publish for CLI
+    run: melos exec --scope fnds_cli -- dart pub publish
