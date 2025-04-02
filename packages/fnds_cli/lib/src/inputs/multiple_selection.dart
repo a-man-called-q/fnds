@@ -8,7 +8,7 @@ List<T> multipleSelect<T>({
   int width = 0,
   int gap = 0,
   Indicators indicators = const Indicators(),
-  Function(MultipleCLIState<T> values)? callback,
+  Function(GroupCLIState<T> values)? callback,
 }) {
   List<bool> selectedOptions = List.generate(options.length, (index) => false);
   int currentIndex = 0;
@@ -65,6 +65,6 @@ List<T> multipleSelect<T>({
       options
           .where((option) => selectedOptions[options.indexOf(option)])
           .toList();
-  callback?.call(MultipleCLIState<T>(label, selectedValues));
+  callback?.call(GroupCLIState<T>(label, selectedValues));
   return selectedValues;
 }

@@ -1,39 +1,146 @@
-<!-- 
-This README describes the package. If you publish this package to pub.dev,
-this README's contents appear on the landing page for your package.
+# Friendly CLI for Dart
 
-For information about how to write a good package README, see the guide for
-[writing package pages](https://dart.dev/tools/pub/writing-package-pages). 
+A lightweight and intuitive CLI package for Dart, inspired by the user-friendly experience of the **AstroJS** CLI.
 
-For general information about developing packages, see the Dart guide for
-[creating packages](https://dart.dev/guides/libraries/create-packages)
-and the Flutter guide for
-[developing packages and plugins](https://flutter.dev/to/develop-packages). 
--->
+I am not an expert programmer and it's been a while since I start learning Flutter. Out of nowhere, I decided to build a boilerplate for starting Flutter project and I decided to build somekind of CLI to help scaffold and helps the project. I learned that there are not many CLI Framework in Dart ecosystem that suits me.
 
-TODO: Put a short description of the package here that helps potential users
-know whether this package might be useful for them.
+## Why FNDS ?
+
+FNDS actually meant **"Fondasi" /fɔnˈdasi/**, an Indonesian word for *Foundation*. and it fits me well since it can be also meant *Flutter N Dart Stuff*. (Yes, I'm bad at naming things).
+
+Fondasi is meant to be a starter for things built in Dart to make Dart and Flutter apps. I Hope this can help you as well.
 
 ## Features
 
-TODO: List what your package can do. Maybe include images, gifs, or videos.
+- **Lightweight**: Minimal dependencies for fast execution.
+- **Interactive Selection**: Navigate using arrow keys, select with enter, and support for mouse interactions.
+- **Non-intrusive Rendering**: Renders only the selection UI without affecting previous lines.
+- **Formatted Output**: Works seamlessly with the `row` function for structured results.
+- **Consistent API**: Follows the structure of the `ask` function for a familiar developer experience.
 
-## Getting started
+## Installation
 
-TODO: List prerequisites and provide or point to information on how to
-start using the package.
+### Using CLI Command
+
+```
+dart pub get fnds_cli
+```
+
+### Manual Installation
+
+Add the package to your `pubspec.yaml`:
+
+```yaml
+dependencies:
+  fnds_cli: ^0.5.0
+```
+
+Then run:
+
+```sh
+dart pub get
+```
 
 ## Usage
 
-TODO: Include short and useful examples for package users. Add longer examples
-to `/example` folder. 
+You can use the `StateManager` to make things easier
 
 ```dart
-const like = 'sample';
+StateManager statesManager = StateManager([]);
+
+  ask<String>(
+    label: chalk.black.onMagenta.bold(' testing-ask '),
+    question:
+        () => print(
+          'You can ask anything and making sure the response is the correct type',
+        ),
+    defaultValue: 'the reply is supposed to be a string',
+    gap: 2,
+    width: 20,
+    callback: (result) => statesManager.addMember(result),
+  );
+
+  ask<double>(
+    label: chalk.black.onPink.bold(' testing-ask-double '),
+    question: () => print('Now the reply is supposed to be a double'),
+    defaultValue: 10,
+    gap: 2,
+    width: 20,
+    callback: (result) => statesManager.addMember(result),
+  );
+
+  ask<String>(
+    label: chalk.black.onBlue.bold(' use-secretive'),
+    question:
+        () => print(
+          'This is when you are using password mode ${chalk.bold('(isSecretive set to true)')}: ',
+        ),
+    defaultValue: 'secret-or-us',
+    isSecretive: true,
+    gap: 2,
+    width: 20,
+    callback: (result) => statesManager.addMember(result),
+  );
+
+  confirm(
+    label: chalk.black.onMagenta.bold(' confirmation-test '),
+    question: () => print("It's a question of yes and no, nothing more"),
+    defaultValue: true,
+    gap: 2,
+    width: 20,
+    callback: (result) => statesManager.addMember(result),
+  );
+
+  select(
+    label: chalk.black.onGreen.bold(' fruit-checker '),
+    question: () => print("Select your favorite fruit:"),
+    options: ["Apple", "Banana", "Cherry"],
+    recommendedOption: "Banana",
+    width: 20,
+    gap: 2,
+    callback: (result) => statesManager.addMember(result),
+  );
+
+  multipleSelect(
+    label: chalk.black.onGreen.bold(' multi-select '),
+    question: () => print('Select your favorite fruits multiple:'),
+    options: ["Apple", "Banana", "Cherry"],
+    gap: 2,
+    width: 20,
+    callback: (result) => statesManager.addMember(result),
+  );
 ```
 
-## Additional information
+or you can directly store it to a variable
 
-TODO: Tell users more about the package: where to find more information, how to 
-contribute to the package, how to file issues, what response they can expect 
-from the package authors, and more.
+```dart
+  String answer = ask<String>(
+    label: chalk.black.onMagenta.bold(' testing-ask '),
+    question:
+        () => print(
+          'You can ask anything and making sure the response is the correct type',
+        ),
+    defaultValue: 'the reply is supposed to be a string',
+    gap: 2,
+    width: 20,
+    callback: (result) => statesManager.addMember(result),
+  );
+
+  print('answer is: $answer');
+```
+
+## Why Use This?
+
+- **Developer-friendly**: Simple API with a smooth UX.
+- **Efficient**: Built to be performant and lightweight.
+- **Inspired by AstroJS CLI**: Brings a refined selection experience to Dart CLIs.
+
+## Special Thanks
+
+- Those who built **AstroJS** and the CLI that powered it.
+- **DCLI package** contributors that became my basic knowledge on how FNDS_CLI 
+- My Wife who always encouraged me to always build something for the community.
+
+## License
+
+MIT License
