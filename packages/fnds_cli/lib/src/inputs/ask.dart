@@ -27,7 +27,7 @@ T ask<T>({
       isSecretive: isSecretive,
     );
 
-    if (input?.isEmpty ?? true) {
+    if (input != null && input.isEmpty) {
       callback?.call(SingleCLIState<T>(label, defaultValue));
       return defaultValue;
     }

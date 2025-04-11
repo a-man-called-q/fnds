@@ -6,6 +6,7 @@ environment:
 workspace:
   - packages/fnds_kit
   - packages/fnds_cli
+  - packages/fnds_logger
   - apps/demo
   - apps/cli
   
