@@ -1,95 +1,165 @@
-import 'package:chalkdart/chalk.dart';
 import 'package:fnds_cli/fnds_cli.dart';
 
-void main() {
-  StateManager statesManager = StateManager([]);
-
-  ask<String>(
-    label: chalk.black.onMagenta.bold(' testing-ask '),
-    question:
-        () => print(
-          'You can ask anything and making sure the response is the correct type',
-        ),
-    defaultValue: 'the reply is supposed to be a string',
-    gap: 2,
-    width: 20,
-    callback: (result) => statesManager.addMember(result),
+void main(List<String> args) async {
+  // Create a command runner
+  final runner = CliCommandRunner(
+    'example',
+    'A sample CLI application using fnds_cli framework',
+    // Enable colored logging by default
+    enableLogging: true,
   );
 
-  ask<double>(
-    label: chalk.black.onPink.bold(' testing-ask-double '),
-    question: () => print('Now the reply is supposed to be a double'),
-    defaultValue: 10,
-    gap: 2,
-    width: 20,
-    callback: (result) => statesManager.addMember(result),
-  );
+  // Add commands to the runner
+  runner.addBaseCommand(CreateCommand());
 
-  ask<String>(
-    label: chalk.black.onBlue.bold(' use-secretive'),
-    question:
-        () => print(
-          'This is when you are using password mode ${chalk.bold('(isSecretive set to true)')}: ',
-        ),
-    defaultValue: 'secret-or-us',
-    isSecretive: true,
-    gap: 2,
-    width: 20,
-    callback: (result) => statesManager.addMember(result),
-  );
-
-  confirm(
-    label: chalk.black.onMagenta.bold(' confirmation-test '),
-    question: () => print("It's a question of yes and no, nothing more"),
-    defaultValue: true,
-    gap: 2,
-    width: 20,
-    callback: (result) => statesManager.addMember(result),
-  );
-
-  select(
-    label: chalk.black.onGreen.bold(' fruit-checker '),
-    question: () => print("Select your favorite fruit:"),
-    options: ["Apple", "Banana", "Cherry"],
-    recommendedOption: "Banana",
-    width: 20,
-    gap: 2,
-    callback: (result) => statesManager.addMember(result),
-  );
-
-  multipleSelect(
-    label: chalk.black.onGreen.bold(' multi-select '),
-    question: () => print('Select your favorite fruits multiple:'),
-    options: ["Apple", "Banana", "Cherry"],
-    gap: 2,
-    width: 20,
-    callback: (result) => statesManager.addMember(result),
-  );
-
-  print('All The states:');
-  for (var state in statesManager.states) {
-    print(chalk.blue('The label is: ${state.label}'));
-    if (state is GroupCLIState) {
-      print(
-        chalk.blue(
-          'The selected options are: ${state.selectedOptions.join(', ')}',
-        ),
-      );
-    } else if (state is SingleCLIState) {
-      print(chalk.blue('The value is: ${state.value}'));
-    }
-  }
-  print('');
-  print('All the state values:');
-  for (var state in statesManager.stateValues) {
-    print(chalk.blue(state));
-  }
-  print('');
-  print('get state value using the label:');
-  print(chalk.blue(statesManager.getStateValueByLabel('fruit-checker')));
-  print('');
-  print('get state value using the index:');
-  print(chalk.blue(statesManager.getStateValueByIndex(2)));
+  // Run the command
+  await runner.run(args);
 }
 
-StateManager statesManager = StateManager([]);
+/// A third-level command with additional arguments
+class AuthCommand extends NestedCommand {
+  @override
+  String get description => 'Create an authentication-related class';
+
+  @override
+  String get name => 'auth';
+
+  @override
+  void addSubcommands() {
+    addSubcommand(LogicCommand());
+    addSubcommand(ProviderCommand());
+  }
+
+  @override
+  void setupArgs(argParser) {
+    super.setupArgs(argParser);
+
+    argParser.addOption(
+      'role',
+      abbr: 'r',
+      help: 'The role associated with this auth class',
+      allowed: ['user', 'admin', 'guest'],
+      defaultsTo: 'user',
+    );
+  }
+}
+
+/// A second-level command that has its own subcommands
+class ClassCommand extends NestedCommand {
+  @override
+  String get description => 'Create a new class';
+
+  @override
+  String get name => 'class';
+
+  @override
+  void addSubcommands() {
+    addSubcommand(AuthCommand());
+    addSubcommand(ModelCommand());
+    addSubcommand(RepositoryCommand());
+  }
+}
+
+/// A root-level command that demonstrates nested commands
+class CreateCommand extends NestedCommand {
+  @override
+  String get description => 'Create a new resource';
+
+  @override
+  String get name => 'create';
+
+  @override
+  void addSubcommands() {
+    addSubcommand(ClassCommand());
+  }
+}
+
+/// A fourth-level command that performs an action
+class LogicCommand extends BaseCommand {
+  @override
+  String get description => 'Create an auth logic class';
+
+  @override
+  String get name => 'logic';
+
+  @override
+  Future<int> execute() async {
+    final output = argResults!['output'] as String;
+    final force = argResults!['force'] as bool;
+    final role = parent!.argResults!['role'] as String;
+
+    logger.info('Creating auth logic class in $output');
+    logger.info('Role: $role');
+
+    if (argResults!['verbose'] as bool) {
+      logger.debug('Force overwrite: $force');
+    }
+
+    // Simulate file creation
+    logger.info('Auth logic class created successfully!');
+    return 0;
+  }
+
+  @override
+  void setupArgs(argParser) {
+    super.setupArgs(argParser);
+
+    argParser.addOption(
+      'output',
+      abbr: 'o',
+      help: 'The output file path',
+      defaultsTo: 'lib/auth/logic.dart',
+    );
+
+    argParser.addFlag(
+      'force',
+      abbr: 'f',
+      help: 'Force overwrite if file exists',
+      negatable: false,
+    );
+  }
+}
+
+/// Alternative third-level commands
+class ModelCommand extends BaseCommand {
+  @override
+  String get description => 'Create a model class';
+
+  @override
+  String get name => 'model';
+
+  @override
+  Future<int> execute() async {
+    logger.info('Creating model class');
+    return 0;
+  }
+}
+
+/// Another fourth-level command
+class ProviderCommand extends BaseCommand {
+  @override
+  String get description => 'Create an auth provider class';
+
+  @override
+  String get name => 'provider';
+
+  @override
+  Future<int> execute() async {
+    logger.info('Creating auth provider class');
+    return 0;
+  }
+}
+
+class RepositoryCommand extends BaseCommand {
+  @override
+  String get description => 'Create a repository class';
+
+  @override
+  String get name => 'repository';
+
+  @override
+  Future<int> execute() async {
+    logger.info('Creating repository class');
+    return 0;
+  }
+}

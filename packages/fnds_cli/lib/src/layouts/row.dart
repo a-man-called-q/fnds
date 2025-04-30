@@ -1,25 +1,37 @@
 part of 'layouts.dart';
 
+/// Creates a horizontal row of text columns with customizable formatting.
+///
+/// The [row] function arranges text in columns with specified widths and alignments,
+/// automatically calculating flexible column widths based on available terminal space.
+///
+/// Features:
+/// - Supports fixed and auto-adjusting column widths
+/// - Handles text alignment (left, right, center)
+/// - Preserves ANSI color codes and formatting
+/// - Automatically adapts to terminal width
+///
+/// Parameters:
+/// - [columns]: List of strings to display in columns
+/// - [widths]: Optional width specifications for each column
+/// - [aligns]: Optional alignment for each column ('left', 'right', 'center')
+/// - [gap]: Space between columns
+///
+/// Example:
+/// ```dart
+/// row(
+///   ['Name', 'John Doe', 'Status: Active'],
+///   widths: [IntWidth(10), AutoWidth(), IntWidth(20)],
+///   aligns: ['right', 'left', 'center'],
+///   gap: 2,
+/// );
+/// ```
 void row(
-  List<Function()> columns, {
-  List<Width> widths = const [], // Change to List<Width>
+  List<String> columns, {
+  List<Width> widths = const [],
   List<String> aligns = const [],
   int gap = 2,
 }) {
-  // Capture outputs
-  List<String> outputs =
-      columns.map((fn) {
-        StringBuffer buffer = StringBuffer();
-        Zone.current
-            .fork(
-              specification: ZoneSpecification(
-                print: (_, __, ___, line) => buffer.write(line),
-              ),
-            )
-            .run(fn);
-        return buffer.toString().trim();
-      }).toList();
-
   int totalWidth = stdout.terminalColumns - (gap * (columns.length - 1));
   int assignedWidth = 0;
   int autoCount = 0;
@@ -45,7 +57,7 @@ void row(
 
   // Format columns
   List<String> formattedColumns = List.generate(columns.length, (i) {
-    String text = outputs[i];
+    String text = columns[i];
     String strippedText = stripAnsi(text);
     int ansiCodeLength = text.length - strippedText.length;
     int adjustedWidth = resolvedWidths[i] + ansiCodeLength;

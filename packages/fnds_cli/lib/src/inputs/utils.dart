@@ -1,11 +1,31 @@
 part of 'inputs.dart';
 
+/// Clears a specified number of lines from the terminal output.
+///
+/// This utility function moves the cursor up and clears lines, which is useful
+/// for interactive CLI interfaces that need to update options or selections.
+///
+/// Parameters:
+/// - [lines]: The number of lines to clear from the terminal
 void _clearOptions(int lines) {
   for (int i = 0; i < lines; i++) {
     stdout.write('\x1B[1A\x1B[2K');
   }
 }
 
+/// Gets user input with a placeholder default value.
+///
+/// This function handles raw terminal input with support for default values,
+/// cursor positioning, and password (secretive) mode. It manages clearing the
+/// placeholder when the user starts typing.
+///
+/// Parameters:
+/// - [defaultValue]: Default value shown as a placeholder
+/// - [width]: Width of the input area
+/// - [gap]: Space before the input area
+/// - [isSecretive]: When true, hides user input (for passwords)
+///
+/// Returns the user's input as a string, or null if an error occurs.
 String? _getInputWithPlaceholder({
   required String defaultValue,
   required int width,
@@ -165,15 +185,15 @@ void _renderOptions<String>({
 }
 
 void _renderQuestion({
-  Function()? label,
-  Function()? instruction,
-  required Function() question,
+  String? label,
+  String? instruction,
+  required String question,
   required Width width,
   required int gap,
 }) {
   stdout.write('\x1B[2K\r'); // Clear current line
 
-  List<Function()> columns = [];
+  List<String> columns = [];
   List<Width> widths = [];
   List<String> aligns = [];
 

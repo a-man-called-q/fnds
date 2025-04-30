@@ -1,9 +1,25 @@
 part of 'inputs.dart';
 
+/// Creates a multiple selection interface that allows users to select multiple options.
+///
+/// The [multipleSelect] function displays a list of options that users can navigate through
+/// using arrow keys and toggle selection with the spacebar. Selections are confirmed with Enter.
+///
+/// Parameters:
+/// - [label]: Optional label displayed at the start of the prompt
+/// - [optionLabels]: Optional custom labels for options
+/// - [question]: The question or prompt text shown to the user
+/// - [options]: List of available options of type [T]
+/// - [width]: Width for the label column
+/// - [gap]: Space between columns
+/// - [indicators]: Custom indicators for selected/unselected options
+/// - [callback]: Function called with the selected values
+///
+/// Returns a list of selected values of type [T].
 List<T> multipleSelect<T>({
   String? label,
   List<String>? optionLabels,
-  required Function() question,
+  required String question,
   required List<T> options,
   int width = 0,
   int gap = 0,
@@ -17,7 +33,7 @@ List<T> multipleSelect<T>({
   stdin.lineMode = false;
 
   _renderQuestion(
-    label: () => print(label),
+    label: label,
     question: question,
     width: IntWidth(width),
     gap: gap,

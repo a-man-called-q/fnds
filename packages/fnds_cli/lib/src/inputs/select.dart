@@ -1,8 +1,31 @@
 part of 'inputs.dart';
 
+/// Displays a single selection menu with various options and returns the selected value.
+///
+/// The [select] function allows users to navigate through options using arrow keys and
+/// select one with the Enter key. It handles display formatting, user interaction,
+/// and returns the selected value of type [T].
+///
+/// Parameters:
+/// - [label]: Optional label displayed at the start of the prompt
+/// - [question]: The question or prompt text shown to the user
+/// - [optionLabels]: Optional custom labels for options
+/// - [options]: List of available options of type [T]
+/// - [recommendedOption]: Suggests a default option
+/// - [width]: Width for the label column
+/// - [gap]: Space between columns
+/// - [callback]: Function called with the selected value
+/// - [recommendedText]: Text displayed next to the recommended option
+/// - [indicators]: Custom indicators for selected/unselected options
+///
+/// Returns the selected value of type [T].
+///
+/// Throws [ArgumentError] if:
+/// - optionLabels length doesn't match options length
+/// - recommendedOption is not in the options list
 T select<T>({
   String? label,
-  required Function() question,
+  required String question,
   List<String>? optionLabels,
   required List<T> options,
   T? recommendedOption,
@@ -27,7 +50,7 @@ T select<T>({
   stdin.lineMode = false;
 
   _renderQuestion(
-    label: () => print(label),
+    label: label,
     question: question,
     width: IntWidth(width),
     gap: gap,
