@@ -12,6 +12,9 @@ class CliCommandRunner extends CommandRunner<int> {
   /// Whether to enable logging.
   final bool enableLogging;
 
+  /// Whether to enable interactive fallback for commands by default.
+  final bool useInteractiveFallback;
+
   /// Store the parsed results to access in catch blocks
   ArgResults? _argResults;
 
@@ -24,6 +27,7 @@ class CliCommandRunner extends CommandRunner<int> {
     super.description, {
     this.enableLogging = true,
     LogLevel logLevel = LogLevel.info,
+    this.useInteractiveFallback = true,
   }) {
     // Add global options
     argParser
@@ -38,6 +42,11 @@ class CliCommandRunner extends CommandRunner<int> {
         abbr: 'v',
         help: 'Show verbose output.',
         negatable: false,
+      )
+      ..addFlag(
+        'interactive',
+        help: 'Enable interactive mode for handling missing arguments.',
+        defaultsTo: useInteractiveFallback,
       );
 
     // Initialize logger
@@ -67,6 +76,17 @@ class CliCommandRunner extends CommandRunner<int> {
       if (_argResults!['verbose'] == true) {
         _logger.level = LogLevel.debug;
       }
+
+      // Store global flags in the state manager
+      final interactiveFlag =
+          _argResults!['interactive'] as bool? ?? useInteractiveFallback;
+      final verboseFlag = _argResults!['verbose'] as bool? ?? false;
+
+      // Add global flags to state manager
+      cliStateManager.addMember(
+        SingleCLIState<bool>('interactive', interactiveFlag),
+      );
+      cliStateManager.addMember(SingleCLIState<bool>('verbose', verboseFlag));
 
       // Run the command
       return await runCommand(_argResults!) ?? 0;

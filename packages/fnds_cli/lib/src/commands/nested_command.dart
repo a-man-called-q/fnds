@@ -18,15 +18,33 @@ abstract class NestedCommand extends BaseCommand {
     // Subclasses can @override this.
   }
 
-  // addSubcommand remains public as it was already
-
   @override
   Future<int?> execute() async {
-    // ... (rest of the execute method is fine) ...
-    if (argResults!.command == null && subcommands.isNotEmpty) {
-      print(usage);
-      return 0;
+    // First check if we have a subcommand to run
+    if (argResults!.command == null) {
+      // No subcommand provided, but subcommands exist
+      if (subcommands.isNotEmpty) {
+        print(usage);
+        return 0;
+      }
+
+      // No subcommands defined, so we're a leaf command
+      // Try to use interactive fallback if needed
+
+      // Check if interactive mode is enabled from the state manager
+      final isInteractive =
+          cliStateManager.getStateValueByLabel('interactive') as bool? ?? false;
+
+      // Check if the flag was specifically set on this command
+      final interactiveFlag = argResults?['interactive'] as bool? ?? false;
+
+      if (interactiveFlag || isInteractive) {
+        // The base class's run method will handle the interactive fallback
+        return null;
+      }
     }
+
+    // Delegate to normal subcommand execution
     return null;
   }
 }
