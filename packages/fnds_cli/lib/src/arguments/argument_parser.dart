@@ -1,7 +1,7 @@
 /// Interface for argument parsers in the CLI framework.
 ///
-/// This abstraction allows different argument parsing libraries to be used,
-/// with 'args' being the default implementation.
+/// This abstraction allows the CLI framework to support multiple argument
+/// parsing libraries, with 'args' being the default implementation.
 abstract class ArgumentParser<T> {
   /// Returns a usage string for the arguments.
   String get usage;

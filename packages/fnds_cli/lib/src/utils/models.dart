@@ -1,3 +1,16 @@
+/// Data models for CLI state and layout specifications.
+///
+/// This file defines the core data models used throughout the FNDS CLI framework:
+///
+/// - [CLIState] - Base class for all state management within CLI applications
+/// - [SingleCLIState] - Represents a single value from user input (like a text response)
+/// - [GroupCLIState] - Represents multiple selected values (like from a checkbox list)
+/// - [Width] - Base class for layout width specifications
+/// - [AutoWidth] - For content that should automatically size to fit
+/// - [IntWidth] - For content with fixed width requirements
+///
+/// These models work with the [StateManager] to provide a consistent way to
+/// handle user inputs and layout calculations across the CLI framework.
 part of 'utils.dart';
 
 /// A width specification that automatically adjusts to content.
@@ -5,6 +18,10 @@ part of 'utils.dart';
 /// The [AutoWidth] class represents a flexible width that will automatically
 /// adjust based on the content size. It's used in layout calculations for terminal output.
 class AutoWidth extends Width {
+  /// Creates an auto-adjusting width that adapts to content size.
+  ///
+  /// Use this constructor when you want a layout element to automatically
+  /// size itself based on its content rather than having a fixed width.
   const AutoWidth();
 }
 

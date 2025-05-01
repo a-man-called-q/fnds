@@ -1,3 +1,10 @@
+/// Adapter for the 'args' package.
+///
+/// This class implements the [ArgumentParser] interface using the 'args'
+/// package, providing a default argument parsing implementation for the CLI
+/// framework.
+library;
+
 import 'package:args/args.dart';
 
 import 'argument_parser.dart';

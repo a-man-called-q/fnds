@@ -1,7 +1,7 @@
-/// Argument parsing functionality for CLI applications.
+/// Argument parsing utilities for CLI applications.
 ///
-/// This library provides a flexible argument parsing system that allows
-/// different argument parsing libraries to be used, with 'args' as the default.
+/// This library provides abstractions and adapters for argument parsing,
+/// allowing different libraries to be used interchangeably.
 library;
 
 export 'args_adapter.dart';

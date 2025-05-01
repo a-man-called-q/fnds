@@ -17,3 +17,7 @@ scripts:
     name: publish-cli
     description: run publish for CLI
     run: melos exec --scope fnds_cli -- dart pub publish
+  test-cli:
+    name: test-cli
+    description: Run tests for CLI package
+    run: melos exec --scope fnds_cli -- dart test --chain-stack-traces

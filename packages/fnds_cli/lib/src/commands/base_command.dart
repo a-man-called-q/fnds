@@ -1,5 +1,11 @@
 part of 'commands.dart';
 
+/// Base class for defining CLI commands.
+///
+/// This class provides a framework for creating commands with argument parsing,
+/// logging, and support for interactive fallbacks. It is designed to be extended
+/// by specific command implementations.
+
 /// Base class for all commands in the CLI framework.
 ///
 /// This class extends the [Command] class from the args package and adds
@@ -47,17 +53,10 @@ abstract class BaseCommand extends Command<int> {
   /// check both the command line arguments and any values provided through
   /// interactive fallbacks.
   T? getArg<T>(String name) {
-    // First check argResults
-    if (argResults!.wasParsed(name)) {
-      return argResults![name] as T?;
-    }
-
-    // Then check interactive values
+    if (argResults!.wasParsed(name)) return argResults![name] as T?;
     if (_interactiveValues.containsKey(name)) {
       return _interactiveValues[name] as T?;
     }
-
-    // Finally return the default value if any
     return argResults![name] as T?;
   }
 
@@ -135,21 +134,13 @@ abstract class BaseCommand extends Command<int> {
   /// Gets a list of required arguments that are missing from the command line.
   List<String> _getMissingRequiredArgs() {
     final missingArgs = <String>[];
-
-    // This is a bit of a hack to get the mandatory options
-    // The args package doesn't expose this information directly
-    try {
-      argParser.options.forEach((name, option) {
-        if (option.mandatory &&
-            !argResults!.wasParsed(name) &&
-            argResults![name] == null) {
-          missingArgs.add(name);
-        }
-      });
-    } catch (e) {
-      // Ignore errors, as this is just a best-effort attempt
-    }
-
+    argParser.options.forEach((name, option) {
+      if (option.mandatory &&
+          !argResults!.wasParsed(name) &&
+          argResults![name] == null) {
+        missingArgs.add(name);
+      }
+    });
     return missingArgs;
   }
 

@@ -1,7 +1,8 @@
-/// Command-related classes and utilities for the CLI framework.
+/// Entry point for the commands module.
 ///
-/// This library provides the base structure for creating command-line
-/// interfaces with nested command support.
+/// This library provides the foundational classes and utilities for building
+/// CLI commands, including support for nested commands, interactive fallbacks,
+/// and argument parsing.
 library;
 
 import 'dart:async';

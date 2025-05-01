@@ -48,7 +48,7 @@ class InteractiveFallback<T> {
   }
 }
 
-/// Manages the interactive fallback process for command arguments.
+/// Refactored InteractiveFallbackManager to improve type safety and modularity.
 class InteractiveFallbackManager {
   /// Runs the interactive fallback for a single argument.
   static T runFallback<T>(InteractiveFallback<T> fallback) {
@@ -60,6 +60,11 @@ class InteractiveFallbackManager {
           defaultValue: fallback.defaultValue as T,
         );
       case InteractiveInputType.confirm:
+        if (T != bool && T != dynamic) {
+          throw ArgumentError(
+            'Confirm input type requires boolean return type.',
+          );
+        }
         return confirm(
               label: fallback.label,
               question: fallback.question,
@@ -75,13 +80,18 @@ class InteractiveFallbackManager {
           recommendedOption: fallback.defaultValue,
         );
       case InteractiveInputType.multipleSelect:
-        return multipleSelect<dynamic>(
-              label: fallback.label,
-              question: fallback.question,
-              options: fallback.options!,
-              optionLabels: fallback.optionLabels,
-            )
-            as T;
+        if (T is! List<dynamic> && T != dynamic) {
+          throw ArgumentError(
+            'MultipleSelect input type requires List return type.',
+          );
+        }
+        final result = multipleSelect(
+          label: fallback.label,
+          question: fallback.question,
+          options: fallback.options!,
+          optionLabels: fallback.optionLabels,
+        );
+        return result as T;
     }
   }
 }
