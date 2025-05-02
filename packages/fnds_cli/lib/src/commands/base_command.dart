@@ -130,10 +130,6 @@ abstract class BaseCommand extends Command<int> {
   List<String> _getMissingRequiredArgs() {
     final missingArgs = <String>[];
 
-    // Check if the argParser is our enhanced ArgsAdapter
-    // Try to get access to the parent ArgParser that might be an ArgsAdapter
-    final parser = argParser;
-
     // Check each name in the interactiveFallbacks map since
     // these are the arguments we want to handle interactively
     for (final name in _interactiveFallbacks.keys) {
