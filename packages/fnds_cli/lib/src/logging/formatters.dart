@@ -114,7 +114,7 @@ class PatternLogFormatter implements LogFormatter {
 
   /// Creates a new [PatternLogFormatter] with the given pattern.
   ///
-  /// The default pattern is "[{time}] {level}: {message}".
+  /// The default pattern is `[{time}] {level}: {message}`.
   const PatternLogFormatter([this.pattern = '[{time}] {level}: {message}']);
 
   @override
