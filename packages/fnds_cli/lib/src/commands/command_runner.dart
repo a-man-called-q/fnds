@@ -49,12 +49,7 @@ class CliCommandRunner extends CommandRunner<int> {
     this.useInteractiveFallback = true,
   }) {
     argParser
-      ..addFlag(
-        'help',
-        abbr: 'h',
-        help: 'Print this usage information.',
-        negatable: false,
-      )
+      // Help flag is automatically added by the CommandRunner base class
       ..addFlag(
         'verbose',
         abbr: 'v',

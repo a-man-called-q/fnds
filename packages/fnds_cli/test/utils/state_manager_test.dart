@@ -2,6 +2,11 @@ import 'dart:async';
 
 import 'package:test/test.dart';
 
+// Add this function to make the file executable on its own
+void main() {
+  stateManagerTests();
+}
+
 /// Tests for the StateManager class
 void stateManagerTests() {
   group('StateManager Tests', () {
@@ -147,29 +152,29 @@ void stateManagerTests() {
 /// Base class for CLI states
 abstract class CLIState<T> {
   final String label;
-  T get value;
-
   CLIState({required this.label});
-}
 
-/// Single value CLI state (for individual inputs)
-class SingleCLIState<T> extends CLIState<T> {
-  final T _value;
-
-  @override
-  T get value => _value;
-
-  SingleCLIState({required super.label, required T value}) : _value = value;
+  T get value;
 }
 
 /// Group CLI state (for multiple selections)
 class GroupCLIState extends CLIState<List<String>> {
   final List<String> selectedOptions;
 
+  GroupCLIState({required super.label, required this.selectedOptions});
+
   @override
   List<String> get value => selectedOptions;
+}
 
-  GroupCLIState({required super.label, required this.selectedOptions});
+/// Single value CLI state (for individual inputs)
+class SingleCLIState<T> extends CLIState<T> {
+  final T _value;
+
+  SingleCLIState({required super.label, required T value}) : _value = value;
+
+  @override
+  T get value => _value;
 }
 
 /// State manager to handle collections of states
@@ -181,21 +186,19 @@ class StateManager {
   StateManager(List<CLIState> initialStates)
     : _states = List.from(initialStates);
 
-  Stream<List<CLIState>> get stream => _controller.stream;
-
   List<CLIState> get states => List.unmodifiable(_states);
 
   List<dynamic> get stateValues => _states.map((state) => state.value).toList();
+
+  Stream<List<CLIState>> get stream => _controller.stream;
 
   void addMember(CLIState state) {
     _states.add(state);
     _controller.add(List.unmodifiable(_states));
   }
 
-  void newList(List<CLIState> states) {
-    _states.clear();
-    _states.addAll(states);
-    _controller.add(List.unmodifiable(_states));
+  void dispose() {
+    _controller.close();
   }
 
   dynamic getStateValueByIndex(int index) {
@@ -210,7 +213,9 @@ class StateManager {
     return getStateValueByIndex(stateIndex);
   }
 
-  void dispose() {
-    _controller.close();
+  void newList(List<CLIState> states) {
+    _states.clear();
+    _states.addAll(states);
+    _controller.add(List.unmodifiable(_states));
   }
 }

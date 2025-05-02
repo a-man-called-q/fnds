@@ -15,6 +15,9 @@ import 'argument_parser.dart';
 class ArgsAdapter implements ArgumentParser<ArgResults> {
   final ArgParser _parser;
 
+  /// Tracks which options are marked as mandatory
+  final Set<String> _mandatoryOptions = {};
+
   /// Creates a new [ArgsAdapter].
   ArgsAdapter() : _parser = ArgParser();
 
@@ -68,6 +71,11 @@ class ArgsAdapter implements ArgumentParser<ArgResults> {
       valueHelp: valueHelp,
       hide: hide,
     );
+
+    // Track mandatory options
+    if (mandatory) {
+      _mandatoryOptions.add(name);
+    }
   }
 
   @override
@@ -92,7 +100,15 @@ class ArgsAdapter implements ArgumentParser<ArgResults> {
       valueHelp: valueHelp,
       hide: hide,
     );
+
+    // Track mandatory options
+    if (mandatory) {
+      _mandatoryOptions.add(name);
+    }
   }
+
+  /// Returns whether an option is mandatory.
+  bool isMandatory(String name) => _mandatoryOptions.contains(name);
 
   @override
   ArgResults parse(List<String> args) {

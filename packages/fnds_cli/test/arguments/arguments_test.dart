@@ -1,6 +1,11 @@
 import 'package:args/args.dart';
 import 'package:test/test.dart';
 
+// Add main function for standalone execution
+void main() {
+  argumentTests();
+}
+
 /// Tests for argument parsing and handling functionality
 void argumentTests() {
   group('Argument Parser Tests', () {

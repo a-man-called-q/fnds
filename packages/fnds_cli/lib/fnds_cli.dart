@@ -10,3 +10,4 @@ export 'src/commands/commands.dart';
 export 'src/errors/errors.dart';
 export 'src/inputs/inputs.dart';
 export 'src/logging/logging.dart';
+export 'src/utils/utils.dart';

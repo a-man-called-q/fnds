@@ -147,27 +147,20 @@ class MockStdin implements Stdin {
 
   @override
   int readByteSync() {
+    // Process key presses first if any are available
     if (_currentKeyPressIndex < simulatedKeyPresses.length) {
       final keyPress = simulatedKeyPresses[_currentKeyPressIndex++];
-      switch (keyPress) {
-        case KeyPress.upArrow:
-          return 65;
-        case KeyPress.downArrow:
-          return 66;
-        case KeyPress.enter:
-          return 10;
-        case KeyPress.space:
-          return 32;
-      }
+      return keyPress.code; // Use the new extension method to get the code
     }
 
+    // Then process text inputs if any are available
     if (_currentInputIndex < simulatedInputs.length) {
       final currentInput = simulatedInputs[_currentInputIndex];
 
       if (currentInput.isEmpty) {
         _currentInputIndex++;
         _currentCharIndexInInput = 0;
-        return 10;
+        return 10; // Line feed / Enter
       }
 
       if (_currentCharIndexInInput < currentInput.length) {
@@ -177,11 +170,11 @@ class MockStdin implements Stdin {
       } else {
         _currentInputIndex++;
         _currentCharIndexInInput = 0;
-        return 10;
+        return 10; // Line feed / Enter
       }
     }
 
-    return -1;
+    return -1; // No more input available
   }
 
   @override

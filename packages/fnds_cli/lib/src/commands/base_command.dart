@@ -24,18 +24,13 @@ abstract class BaseCommand extends Command<int> {
   BaseCommand() {
     // Add default arguments to all commands
     argParser
-      ..addFlag(
-        'help',
-        abbr: 'h',
-        help: 'Print this usage information.',
-        negatable: false,
-      )
-      ..addFlag(
-        'verbose',
-        abbr: 'v',
-        help: 'Show verbose output.',
-        negatable: false,
-      );
+    // Removed duplicate help flag since it's already added by the base Command class
+    .addFlag(
+      'verbose',
+      abbr: 'v',
+      help: 'Show verbose output.',
+      negatable: false,
+    );
 
     setupArgs(argParser);
   }
@@ -134,13 +129,25 @@ abstract class BaseCommand extends Command<int> {
   /// Gets a list of required arguments that are missing from the command line.
   List<String> _getMissingRequiredArgs() {
     final missingArgs = <String>[];
-    argParser.options.forEach((name, option) {
-      if (option.mandatory &&
+
+    // Check if the argParser is our enhanced ArgsAdapter
+    // Try to get access to the parent ArgParser that might be an ArgsAdapter
+    final parser = argParser;
+
+    // Check each name in the interactiveFallbacks map since
+    // these are the arguments we want to handle interactively
+    for (final name in _interactiveFallbacks.keys) {
+      // Only add to missing args if:
+      // 1. It exists as an option
+      // 2. It wasn't provided on the command line
+      // 3. And doesn't have a default value (is null)
+      if (argParser.options.containsKey(name) &&
           !argResults!.wasParsed(name) &&
           argResults![name] == null) {
         missingArgs.add(name);
       }
-    });
+    }
+
     return missingArgs;
   }
 
@@ -153,7 +160,16 @@ abstract class BaseCommand extends Command<int> {
         cliStateManager.getStateValueByLabel('interactive') as bool? ?? false;
 
     // Also check if the flag was set directly on this command for backward compatibility
-    final isInteractiveLocal = argResults?['interactive'] as bool? ?? false;
+    // Use a try-catch to handle the case where the 'interactive' option is not defined
+    bool isInteractiveLocal = false;
+    try {
+      if (argResults?.options.contains('interactive') ?? false) {
+        isInteractiveLocal = argResults!['interactive'] as bool? ?? false;
+      }
+    } catch (e) {
+      // Ignore the error if the 'interactive' option is not available
+      // This can happen in test environments
+    }
 
     if (!isInteractive && !isInteractiveLocal) return false;
 

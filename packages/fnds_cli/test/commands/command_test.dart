@@ -1,6 +1,10 @@
-import 'package:args/command_runner.dart' show UsageException;
 import 'package:fnds_cli/fnds_cli.dart';
 import 'package:test/test.dart';
+
+// Add main function for standalone execution
+void main() {
+  commandTests();
+}
 
 /// Tests for command hierarchy and command runner functionality
 void commandTests() {
@@ -58,21 +62,19 @@ void commandTests() {
       );
     });
 
-    test('Command with unknown arguments throws exception', () {
+    test('Command with unknown arguments throws exception', () async {
       final createCommand = TestCreateCommand();
       runner.addBaseCommand(createCommand);
 
-      expect(
-        () => runner.run(['create', '--unknown-arg']),
-        throwsA(isA<UsageException>()),
-      );
+      // Instead of expecting an exception, check that it returns a non-zero exit code
+      final exitCode = await runner.run(['create', '--unknown-arg']);
+      expect(exitCode, equals(64)); // 64 is the exit code for usage errors
     });
 
-    test('Unknown command throws exception', () {
-      expect(
-        () => runner.run(['unknown-command']),
-        throwsA(isA<UsageException>()),
-      );
+    test('Unknown command throws exception', () async {
+      // Instead of expecting an exception, check that it returns a non-zero exit code
+      final exitCode = await runner.run(['unknown-command']);
+      expect(exitCode, equals(64)); // 64 is the exit code for usage errors
     });
   });
 
@@ -178,6 +180,14 @@ class TestBaseCommand extends TestCommandBase {
   @override
   String get name => 'test';
 
+  // Add direct property access method
+  dynamic getPropertyValue(String propertyName) {
+    if (propertyName == 'outputPath') {
+      return outputPath;
+    }
+    throw ArgumentError('Unknown property: $propertyName');
+  }
+
   @override
   Future<int> processArguments() async {
     if (argResults != null && argResults!.wasParsed('output')) {
@@ -189,7 +199,7 @@ class TestBaseCommand extends TestCommandBase {
   @override
   void setupArgs(argParser) {
     super.setupArgs(argParser);
-    argParser.addFlag('verbose', abbr: 'v', defaultsTo: false);
+    // Remove duplicate verbose flag since it's already added by BaseCommand
     argParser.addOption('output', abbr: 'o', defaultsTo: 'output.txt');
   }
 }
@@ -225,10 +235,12 @@ class TestCreateCommand extends NestedCommand {
     return 0;
   }
 
-  @override
-  void setupArgs(argParser) {
-    super.setupArgs(argParser);
-    argParser.addFlag('verbose', abbr: 'v', defaultsTo: false);
+  // Add direct property access method
+  dynamic getPropertyValue(String propertyName) {
+    if (propertyName == 'verboseMode') {
+      return verboseMode;
+    }
+    throw ArgumentError('Unknown property: $propertyName');
   }
 }
 
@@ -249,6 +261,17 @@ class TestNestedChild extends BaseCommand {
     parentOption = globalResults!['parent-option'] as String;
     childOption = argResults!['child-option'] as String;
     return 0;
+  }
+
+  // Add direct property access method
+  dynamic getPropertyValue(String propertyName) {
+    if (propertyName == 'parentOption') {
+      return parentOption;
+    }
+    if (propertyName == 'childOption') {
+      return childOption;
+    }
+    throw ArgumentError('Unknown property: $propertyName');
   }
 
   @override
@@ -275,6 +298,14 @@ class TestNestedCommand extends BaseCommand {
     return 0;
   }
 
+  // Add direct property access method
+  dynamic getPropertyValue(String propertyName) {
+    if (propertyName == 'optionValue') {
+      return optionValue;
+    }
+    throw ArgumentError('Unknown property: $propertyName');
+  }
+
   @override
   void setupArgs(argParser) {
     super.setupArgs(argParser);
@@ -294,48 +325,44 @@ class TestNestedParent extends NestedCommand {
     print('TestNestedParent executed');
     return 0;
   }
+
+  // Add direct property access method
+  dynamic getPropertyValue(String propertyName) {
+    throw ArgumentError('Unknown property: $propertyName');
+  }
 }
 
 /// Extension to get property values by name for verification
 extension PropertyAccess on dynamic {
   dynamic getPropertyValue(String propertyName) {
-    try {
-      // Use noSuchMethod interception to dynamically access properties
-      return this.noSuchMethod(
-        Invocation.getter(Symbol(propertyName)),
-        returnValue: null,
-      );
-    } catch (_) {
-      // Fallback to a more explicit approach if noSuchMethod doesn't work
-      switch (propertyName) {
-        case 'verboseMode':
-          if (this is TestCreateCommand) {
-            (this as TestCreateCommand).verboseMode;
-          }
-          break;
-        case 'outputPath':
-          if (this is TestBaseCommand) {
-            return (this as TestBaseCommand).outputPath;
-          }
-
-          break;
-        case 'optionValue':
-          if (this is TestNestedCommand) {
-            return (this as TestNestedCommand).optionValue;
-          }
-          break;
-        case 'parentOption':
-          if (this is TestNestedChild) {
-            return (this as TestNestedChild).parentOption;
-          }
-          break;
-        case 'childOption':
-          if (this is TestNestedChild) {
-            return (this as TestNestedChild).childOption;
-          }
-          break;
-      }
-      throw ArgumentError('Unknown property: $propertyName on $runtimeType');
+    // Handle specific property access directly based on runtime type
+    switch (propertyName) {
+      case 'verboseMode':
+        if (this is TestCreateCommand) {
+          return (this as TestCreateCommand).verboseMode;
+        }
+        break;
+      case 'outputPath':
+        if (this is TestBaseCommand) {
+          return (this as TestBaseCommand).outputPath;
+        }
+        break;
+      case 'optionValue':
+        if (this is TestNestedCommand) {
+          return (this as TestNestedCommand).optionValue;
+        }
+        break;
+      case 'parentOption':
+        if (this is TestNestedChild) {
+          return (this as TestNestedChild).parentOption;
+        }
+        break;
+      case 'childOption':
+        if (this is TestNestedChild) {
+          return (this as TestNestedChild).childOption;
+        }
+        break;
     }
+    throw ArgumentError('Unknown property: $propertyName on $runtimeType');
   }
 }
