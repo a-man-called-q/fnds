@@ -29,7 +29,7 @@ abstract class NestedCommand extends BaseCommand {
     // 3. No subcommand was specified but we're in interactive mode
 
     // Check if we're in interactive mode for handling case 2
-    if (_isInteractiveModeEnabled()) {
+    if (isInteractiveModeEnabled(argResults)) {
       // Custom handling for interactive mode can go here
       return null;
     }
@@ -37,10 +37,5 @@ abstract class NestedCommand extends BaseCommand {
     // Default implementation returns null to allow subclasses to handle
     // execution if they override this method
     return null;
-  }
-
-  /// Checks if interactive mode is enabled.
-  bool _isInteractiveModeEnabled() {
-    return isInteractiveModeEnabled(argResults);
   }
 }

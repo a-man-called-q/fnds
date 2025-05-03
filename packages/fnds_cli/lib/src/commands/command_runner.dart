@@ -49,18 +49,12 @@ class CliCommandRunner extends CommandRunner<int> {
     this.useInteractiveFallback = true,
   }) {
     argParser
-      // Help flag is automatically added by the CommandRunner base class
-      ..addFlag(
-        'verbose',
-        abbr: 'v',
-        help: 'Show verbose output.',
-        negatable: false,
-      )
-      ..addFlag(
-        'interactive',
-        help: 'Enable interactive mode for handling missing arguments.',
-        defaultsTo: useInteractiveFallback,
-      );
+    // Help flag is automatically added by the CommandRunner base class
+    .addFlag(
+      'interactive',
+      help: 'Enable interactive mode for handling missing arguments.',
+      defaultsTo: useInteractiveFallback,
+    );
 
     if (enableLogging) {
       _logger.level = logLevel;
