@@ -33,12 +33,13 @@ void commandTests() {
       final createCommand = TestCreateCommand();
       runner.addBaseCommand(createCommand);
 
-      final exitCode = await runner.run(['create', '--verbose']);
+      // Use a custom flag instead of verbose since verbose is no longer a default flag
+      final exitCode = await runner.run(['create', '--custom-flag']);
 
       verifyCommandExecution(
         exitCode: exitCode,
         command: createCommand,
-        expectedValues: {'verboseMode': true},
+        expectedValues: {'customFlag': true},
       );
     });
 
@@ -94,7 +95,7 @@ void commandTests() {
     });
 
     test('BaseCommand argument setup', () {
-      expect(command.argParser.options.containsKey('verbose'), isTrue);
+      // Removed check for verbose flag since it's no longer a default argument
       expect(command.argParser.options.containsKey('output'), isTrue);
     });
 
@@ -199,7 +200,7 @@ class TestBaseCommand extends TestCommandBase {
   @override
   void setupArgs(argParser) {
     super.setupArgs(argParser);
-    // Remove duplicate verbose flag since it's already added by BaseCommand
+    // Add option for testing
     argParser.addOption('output', abbr: 'o', defaultsTo: 'output.txt');
   }
 }
@@ -220,7 +221,7 @@ abstract class TestCommandBase extends BaseCommand {
 
 class TestCreateCommand extends NestedCommand {
   bool executed = false;
-  bool verboseMode = false;
+  bool customFlag = false;
 
   @override
   String get description => 'Test create command';
@@ -231,16 +232,22 @@ class TestCreateCommand extends NestedCommand {
   @override
   Future<int> execute() async {
     executed = true;
-    verboseMode = argResults!['verbose'] as bool;
+    customFlag = argResults!['custom-flag'] as bool;
     return 0;
   }
 
   // Add direct property access method
   dynamic getPropertyValue(String propertyName) {
-    if (propertyName == 'verboseMode') {
-      return verboseMode;
+    if (propertyName == 'customFlag') {
+      return customFlag;
     }
     throw ArgumentError('Unknown property: $propertyName');
+  }
+
+  @override
+  void setupArgs(argParser) {
+    super.setupArgs(argParser);
+    argParser.addFlag('custom-flag', help: 'Custom flag for testing');
   }
 }
 
@@ -337,9 +344,9 @@ extension PropertyAccess on dynamic {
   dynamic getPropertyValue(String propertyName) {
     // Handle specific property access directly based on runtime type
     switch (propertyName) {
-      case 'verboseMode':
+      case 'customFlag':
         if (this is TestCreateCommand) {
-          return (this as TestCreateCommand).verboseMode;
+          return (this as TestCreateCommand).customFlag;
         }
         break;
       case 'outputPath':

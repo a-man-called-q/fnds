@@ -32,7 +32,15 @@ class ProjectCommand extends BaseCommand {
     final projectName = getArg<String>('name');
     final projectType = getArg<String>('type');
     final isPrivate = getArg<bool>('private') ?? false;
-    final frameworks = getArg<List<String>>('frameworks') ?? <String>[];
+
+    // Use this approach to handle List<dynamic> correctly
+    final dynamicFrameworks = getArg<dynamic>('frameworks');
+    final List<String> frameworks;
+    if (dynamicFrameworks is List) {
+      frameworks = dynamicFrameworks.map((item) => item.toString()).toList();
+    } else {
+      frameworks = <String>[];
+    }
 
     // Display the project configuration
     logger.info('Creating new project:');

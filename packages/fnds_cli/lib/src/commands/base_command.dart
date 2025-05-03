@@ -25,12 +25,6 @@ abstract class BaseCommand extends Command<int> {
   /// Creates a new instance of [BaseCommand].
   BaseCommand() {
     // Add default arguments to all commands
-    argParser.addFlag(
-      'verbose',
-      abbr: 'v',
-      help: 'Show verbose output.',
-      negatable: false,
-    );
 
     setupArgs(argParser);
   }
@@ -99,11 +93,6 @@ abstract class BaseCommand extends Command<int> {
       return 0;
     }
 
-    // Setup verbose logging if requested
-    if (argResults!['verbose'] as bool) {
-      logger.level = LogLevel.debug;
-    }
-
     try {
       // Process missing arguments once
       final usedInteractiveFallback = _handleMissingRequiredArguments();
@@ -125,9 +114,6 @@ abstract class BaseCommand extends Command<int> {
     } catch (e, stackTrace) {
       // Generic error handling
       logger.error('Unexpected error: $e');
-      if (argResults!['verbose'] as bool) {
-        logger.debug('$stackTrace');
-      }
       return 1;
     }
   }
