@@ -1,4 +1,7 @@
-# Friendly CLI for Dart
+# Your Friendly CLI for Dart
+
+[![pub version](https://img.shields.io/pub/v/fnds_cli.svg)](https://pub.dev/packages/fnds_cli)
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/amancalledq)
 
 > **Note:** This package is still in early development (pre-0.10.0) and may not function as expected in all scenarios. The examples provided are for reference, and we encourage you to test them and report any issues. Feedback and feature requests are highly appreciated in the [GitHub issue tracker](https://github.com/a-man-called-q/fnds/issues).
 

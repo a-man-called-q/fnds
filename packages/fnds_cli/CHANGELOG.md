@@ -1,3 +1,18 @@
+## [0.3.1] - 2025-05-03
+### Added
+- Performance optimizations for command processing pipeline
+- New helper utilities for common CLI patterns
+- Documentation improvements with more example use cases
+
+### Breaking Changes
+- Arguments verbose mode is no longer enabled by default, now you must explicitly configure verbose output in your command definitions
+
+### Fixed
+- Resolved edge case in nested command parsing
+- Fixed minor formatting inconsistencies in help text output
+- Improved error messages for better user experience
+- Fixed platform-specific terminal behavior on Windows
+
 ## [0.3.0] - 2025-05-03
 ### Added
 - Non-interactive CLI functionality for automated and scripted workflows
