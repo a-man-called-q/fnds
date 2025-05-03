@@ -1,3 +1,5 @@
+part of 'arguments.dart';
+
 /// Interface for argument parsers in the CLI framework.
 ///
 /// This abstraction allows the CLI framework to support multiple argument

@@ -17,6 +17,7 @@ import '../utils/utils.dart';
 
 part 'base_command.dart';
 part 'command_runner.dart';
+part 'helpers.dart';
 part 'interactive_fallback.dart';
 part 'nested_command.dart';
 

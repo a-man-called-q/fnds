@@ -12,7 +12,7 @@ class CommandError implements Exception {
   const CommandError(this.message, {this.exitCode = 1});
 
   @override
-  String toString() => message;
+  String toString() => '${runtimeType.toString()}: $message';
 }
 
 /// Error thrown when a command fails due to a configuration issue.

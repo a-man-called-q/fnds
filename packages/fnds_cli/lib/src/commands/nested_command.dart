@@ -16,21 +16,31 @@ abstract class NestedCommand extends BaseCommand {
 
   @override
   Future<int?> execute() async {
-    if (argResults!.command == null) {
-      if (subcommands.isNotEmpty) {
-        print(usage);
-        return 0;
-      }
-
-      final isInteractive =
-          cliStateManager.getStateValueByLabel('interactive') as bool? ?? false;
-      final interactiveFlag = argResults?['interactive'] as bool? ?? false;
-
-      if (interactiveFlag || isInteractive) {
-        return null;
-      }
+    // If no subcommand was specified but we have subcommands available,
+    // show usage information
+    if (argResults!.command == null && subcommands.isNotEmpty) {
+      print(usage);
+      return 0;
     }
 
+    // At this point, either:
+    // 1. A subcommand was specified (handled by CommandRunner)
+    // 2. No subcommand was specified and we don't have subcommands
+    // 3. No subcommand was specified but we're in interactive mode
+
+    // Check if we're in interactive mode for handling case 2
+    if (_isInteractiveModeEnabled()) {
+      // Custom handling for interactive mode can go here
+      return null;
+    }
+
+    // Default implementation returns null to allow subclasses to handle
+    // execution if they override this method
     return null;
+  }
+
+  /// Checks if interactive mode is enabled.
+  bool _isInteractiveModeEnabled() {
+    return isInteractiveModeEnabled(argResults);
   }
 }

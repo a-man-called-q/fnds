@@ -1,15 +1,11 @@
 part of 'commands.dart';
 
-/// Base class for defining CLI commands.
+/// Base class for all commands in the CLI framework.
 ///
 /// This class provides a framework for creating commands with argument parsing,
 /// logging, and support for interactive fallbacks. It is designed to be extended
-/// by specific command implementations.
-
-/// Base class for all commands in the CLI framework.
-///
-/// This class extends the [Command] class from the args package and adds
-/// additional functionality specific to the framework.
+/// by specific command implementations and adds additional functionality to the
+/// [Command] class from the args package.
 abstract class BaseCommand extends Command<int> {
   /// The logger instance for this command.
   final Logger logger = Logger();
@@ -20,12 +16,16 @@ abstract class BaseCommand extends Command<int> {
   /// A map to store values provided through interactive fallbacks.
   final Map<String, dynamic> _interactiveValues = {};
 
+  /// Cache of required arguments, populated during setup
+  final Set<String> _requiredArguments = {};
+
+  /// Cache for argument values to avoid multiple lookups
+  final Map<String, dynamic> _argCache = {};
+
   /// Creates a new instance of [BaseCommand].
   BaseCommand() {
     // Add default arguments to all commands
-    argParser
-    // Removed duplicate help flag since it's already added by the base Command class
-    .addFlag(
+    argParser.addFlag(
       'verbose',
       abbr: 'v',
       help: 'Show verbose output.',
@@ -33,6 +33,13 @@ abstract class BaseCommand extends Command<int> {
     );
 
     setupArgs(argParser);
+  }
+
+  /// Registers an argument as required and tracks it for validation
+  ///
+  /// Call this method when adding required arguments in setupArgs
+  void addRequiredArg(String name) {
+    _requiredArguments.add(name);
   }
 
   /// Executes the command logic.
@@ -48,15 +55,33 @@ abstract class BaseCommand extends Command<int> {
   /// check both the command line arguments and any values provided through
   /// interactive fallbacks.
   T? getArg<T>(String name) {
-    if (argResults!.wasParsed(name)) return argResults![name] as T?;
-    if (_interactiveValues.containsKey(name)) {
-      return _interactiveValues[name] as T?;
+    // Check cache first to avoid repeated lookups
+    if (_argCache.containsKey(name)) {
+      return _argCache[name] as T?;
     }
-    return argResults![name] as T?;
+
+    // Get the value using a single lookup in the most common case
+    dynamic value;
+
+    if (_interactiveValues.containsKey(name)) {
+      // Interactive values take precedence if they exist
+      value = _interactiveValues[name];
+    } else {
+      // Otherwise use the value from command line args
+      value = argResults![name];
+    }
+
+    // Cache the value for future lookups
+    _argCache[name] = value;
+
+    return value as T?;
   }
 
   @override
   FutureOr<int> run() async {
+    // Reset the argument cache on each run
+    _argCache.clear();
+
     // Handle help flag
     if (argResults!['help'] as bool) {
       print(usage);
@@ -69,16 +94,25 @@ abstract class BaseCommand extends Command<int> {
     }
 
     try {
-      // Check for missing required arguments and try interactive fallback if enabled
-      if (_handleMissingRequiredArguments()) {
+      // Process missing arguments once
+      final usedInteractiveFallback = _handleMissingRequiredArguments();
+      if (usedInteractiveFallback) {
         logger.debug('Using interactive fallback for missing arguments');
       }
 
+      // Execute the command and return the result, defaulting to 0 if null
       return await execute() ?? 0;
     } on CommandError catch (e) {
+      // Handle specific command errors with their own exit codes
       logger.error(e.message);
       return e.exitCode;
+    } on ArgumentError catch (e) {
+      // Convert ArgumentError to UsageError for consistent error handling
+      final usageError = UsageError('Invalid argument: ${e.message}');
+      logger.error(usageError.message);
+      return usageError.exitCode;
     } catch (e, stackTrace) {
+      // Generic error handling
       logger.error('Unexpected error: $e');
       if (argResults!['verbose'] as bool) {
         logger.debug('$stackTrace');
@@ -103,6 +137,8 @@ abstract class BaseCommand extends Command<int> {
   ///     mandatory: true,
   ///   );
   ///
+  ///   addRequiredArg('name');
+  ///
   ///   setInteractiveFallback(
   ///     'name',
   ///     InteractiveFallback<String>(
@@ -118,6 +154,12 @@ abstract class BaseCommand extends Command<int> {
     InteractiveFallback<T> fallback,
   ) {
     _interactiveFallbacks[argName] = fallback;
+
+    // If an interactive fallback is set, consider the arg required
+    // This ensures better consistency for interactive args
+    if (!_requiredArguments.contains(argName)) {
+      _requiredArguments.add(argName);
+    }
   }
 
   /// Sets up command-specific arguments.
@@ -126,65 +168,40 @@ abstract class BaseCommand extends Command<int> {
   /// specific to the command.
   void setupArgs(ArgParser argParser) {}
 
-  /// Gets a list of required arguments that are missing from the command line.
-  List<String> _getMissingRequiredArgs() {
-    final missingArgs = <String>[];
-
-    // Check each name in the interactiveFallbacks map since
-    // these are the arguments we want to handle interactively
-    for (final name in _interactiveFallbacks.keys) {
-      // Only add to missing args if:
-      // 1. It exists as an option
-      // 2. It wasn't provided on the command line
-      // 3. And doesn't have a default value (is null)
-      if (argParser.options.containsKey(name) &&
-          !argResults!.wasParsed(name) &&
-          argResults![name] == null) {
-        missingArgs.add(name);
-      }
-    }
-
-    return missingArgs;
-  }
-
   /// Handles any missing required arguments using interactive fallbacks.
   ///
   /// Returns `true` if any arguments were handled interactively.
   bool _handleMissingRequiredArguments() {
-    // Check if interactive mode is enabled from the state manager
-    final isInteractive =
-        cliStateManager.getStateValueByLabel('interactive') as bool? ?? false;
+    // Use the consolidated method to check interactive mode
+    if (!_isInteractiveModeEnabled()) return false;
 
-    // Also check if the flag was set directly on this command for backward compatibility
-    // Use a try-catch to handle the case where the 'interactive' option is not defined
-    bool isInteractiveLocal = false;
-    try {
-      if (argResults?.options.contains('interactive') ?? false) {
-        isInteractiveLocal = argResults!['interactive'] as bool? ?? false;
+    bool handledAny = false;
+
+    // Process missing arguments in one pass
+    for (final name in _requiredArguments) {
+      // Skip if already provided or no fallback available
+      if (argResults!.wasParsed(name) ||
+          !_interactiveFallbacks.containsKey(name)) {
+        continue;
       }
-    } catch (e) {
-      // Ignore the error if the 'interactive' option is not available
-      // This can happen in test environments
-    }
 
-    if (!isInteractive && !isInteractiveLocal) return false;
-
-    // Get missing required options
-    final missingArgs = _getMissingRequiredArgs();
-    if (missingArgs.isEmpty) return false;
-
-    // Handle each missing argument
-    for (final argName in missingArgs) {
-      final fallback = _interactiveFallbacks[argName];
+      final fallback = _interactiveFallbacks[name];
       if (fallback == null) continue;
 
       final value = InteractiveFallbackManager.runFallback(fallback);
-
-      // We need to store the value somewhere the command can access it
-      // Using a shadow private map since argResults is read-only
-      _interactiveValues[argName] = value;
+      _interactiveValues[name] = value;
+      // Also update cache directly
+      _argCache[name] = value;
+      handledAny = true;
     }
 
-    return missingArgs.isNotEmpty;
+    return handledAny;
+  }
+
+  /// Helper method to check if interactive mode is enabled
+  ///
+  /// Uses the shared utility function for consistent behavior
+  bool _isInteractiveModeEnabled() {
+    return isInteractiveModeEnabled(argResults);
   }
 }

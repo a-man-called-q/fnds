@@ -4,5 +4,9 @@
 /// allowing different libraries to be used interchangeably.
 library;
 
-export 'args_adapter.dart';
-export 'argument_parser.dart';
+import 'package:args/args.dart';
+
+import '../errors/errors.dart';
+
+part 'args_adapter.dart';
+part 'argument_parser.dart';

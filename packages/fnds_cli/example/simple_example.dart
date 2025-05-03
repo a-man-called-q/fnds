@@ -119,13 +119,7 @@ class ProjectCommand extends BaseCommand {
       InteractiveFallback<List<String>>(
         inputType: InteractiveInputType.multipleSelect,
         question: 'Select frameworks to include:',
-        options: <List<String>>[
-          ['React'],
-          ['Angular'],
-          ['Vue'],
-          ['Flutter'],
-          ['Express'],
-        ],
+        options: <String>['React', 'Angular', 'Vue', 'Flutter', 'Express'],
       ),
     );
   }
