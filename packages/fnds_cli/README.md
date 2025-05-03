@@ -249,7 +249,7 @@ This package supports desktop platforms:
 ## Special Thanks
 
 - Those who built **AstroJS** and the CLI that powered it.
-- **DCLI package** contributors that became my basic knowledge on how FNDS_CLI 
+- **DCLI package** contributors that became my basic knowledge on how to create FNDS_CLI 
 - My Wife who always encouraged me to always build something for the community.
 
 ## License
