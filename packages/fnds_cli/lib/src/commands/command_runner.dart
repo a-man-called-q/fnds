@@ -104,7 +104,7 @@ class CliCommandRunner extends CommandRunner<int> {
     } on CommandError catch (e) {
       _logger.error(e.message);
       return e.exitCode;
-    } catch (e, stackTrace) {
+    } catch (e) {
       _logger.error('Unexpected error: $e');
       // Stacktrace is always omitted since verbose flag is removed
       return 1;

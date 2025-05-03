@@ -180,7 +180,7 @@ T _parseInput<T>(String input) {
 /// escape sequences (like arrow keys) which generate multiple bytes.
 /// Arrow keys generate a 3-byte sequence starting with 27 (escape).
 ///
-/// Returns a List<int> containing the bytes read from stdin.
+/// Returns a List&lt;int&qt; containing the bytes read from stdin.
 List<int> _readKey() {
   final input = [stdin.readByteSync()];
 

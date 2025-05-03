@@ -111,7 +111,7 @@ abstract class BaseCommand extends Command<int> {
       final usageError = UsageError('Invalid argument: ${e.message}');
       logger.error(usageError.message);
       return usageError.exitCode;
-    } catch (e, stackTrace) {
+    } catch (e) {
       // Generic error handling
       logger.error('Unexpected error: $e');
       return 1;
