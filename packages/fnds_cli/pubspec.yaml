@@ -4,7 +4,7 @@ resolution: workspace
 version: 0.3.1
 repository: https://github.com/a-man-called-q/fnds/packages/fnds_cli
 funding:
-  - ko-fi.com/amancalledq
+  - https://ko-fi.com/amancalledq
 
 
 environment:
