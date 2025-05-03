@@ -87,23 +87,26 @@ class CliCommandRunner extends CommandRunner<int> {
     try {
       _argResults = parse(args);
 
+      // Early exit for help flag
       if (_argResults!['help'] == true) {
         print(usage);
         return 0;
       }
 
-      if (_argResults!['verbose'] == true) {
+      // Process flags once
+      final bool verboseFlag = _argResults!['verbose'] == true;
+      final bool interactiveFlag =
+          _argResults!['interactive'] as bool? ?? useInteractiveFallback;
+
+      // Update log level if verbose
+      if (verboseFlag && enableLogging) {
         _logger.level = LogLevel.debug;
       }
 
-      final interactiveFlag =
-          _argResults!['interactive'] as bool? ?? useInteractiveFallback;
-      final verboseFlag = _argResults!['verbose'] as bool? ?? false;
-
-      cliStateManager.addMember(
-        SingleCLIState<bool>('interactive', interactiveFlag),
-      );
-      cliStateManager.addMember(SingleCLIState<bool>('verbose', verboseFlag));
+      // Update global state in one operation
+      cliStateManager
+        ..addMember(SingleCLIState<bool>('interactive', interactiveFlag))
+        ..addMember(SingleCLIState<bool>('verbose', verboseFlag));
 
       return await runCommand(_argResults!) ?? 0;
     } on UsageException catch (e) {
@@ -115,6 +118,7 @@ class CliCommandRunner extends CommandRunner<int> {
       return e.exitCode;
     } catch (e, stackTrace) {
       _logger.error('Unexpected error: $e');
+      // Only print stacktrace if verbose mode is enabled
       if (_argResults != null && _argResults!['verbose'] == true) {
         _logger.debug('$stackTrace');
       }

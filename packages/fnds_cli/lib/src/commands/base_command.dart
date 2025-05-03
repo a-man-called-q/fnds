@@ -57,7 +57,11 @@ abstract class BaseCommand extends Command<int> {
   T? getArg<T>(String name) {
     // Check cache first to avoid repeated lookups
     if (_argCache.containsKey(name)) {
-      return _argCache[name] as T?;
+      final cachedValue = _argCache[name];
+      if (cachedValue == null || cachedValue is T) {
+        return cachedValue as T?;
+      }
+      // If type doesn't match, don't use cache and fetch fresh value
     }
 
     // Get the value using a single lookup in the most common case
@@ -73,6 +77,13 @@ abstract class BaseCommand extends Command<int> {
 
     // Cache the value for future lookups
     _argCache[name] = value;
+
+    // Verify type before returning
+    if (value != null && value is! T) {
+      throw ArgumentError(
+        'Expected $T for argument "$name" but got ${value.runtimeType}',
+      );
+    }
 
     return value as T?;
   }

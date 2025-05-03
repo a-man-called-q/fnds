@@ -11,32 +11,52 @@ part of 'utils.dart';
 /// - Retrieving values by index or label
 /// - Subscribing to state changes through the stream API
 class StateManager {
-  List<CLIState> _states;
+  // Use a Map for label-based lookups which are much more efficient than list iteration
+  final Map<String?, CLIState> _statesByLabel = {};
+  final List<CLIState> _states = [];
   final StreamController<List<CLIState>> _controller =
       StreamController<List<CLIState>>.broadcast();
 
   /// Creates a StateManager with an initial list of states.
   ///
   /// The provided list becomes the initial state collection.
-  StateManager(this._states);
+  StateManager(List<CLIState> initialStates) {
+    // Initialize both data structures efficiently
+    if (initialStates.isNotEmpty) {
+      _states.addAll(initialStates);
+
+      // Pre-populate the lookup map
+      for (final state in initialStates) {
+        if (state.label != null) {
+          _statesByLabel[state.label] = state;
+        }
+      }
+
+      // Notify listeners of initial state
+      _controller.add(List.unmodifiable(_states));
+    }
+  }
 
   /// Returns an unmodifiable view of all managed states.
   List<CLIState> get states => List.unmodifiable(_states);
 
   /// Returns a list of all state values, extracting the appropriate values
-  /// based on the type of state (SingleCLIState or GroupCLIState).
-  List<dynamic> get stateValues =>
-      _states
-          .map((state) {
-            if (state is GroupCLIState) {
-              return state.selectedOptions;
-            } else if (state is SingleCLIState) {
-              return state.value;
-            }
-            return null;
-          })
-          .where((value) => value != null)
-          .toList();
+  /// based on the type of state.
+  List<dynamic> get stateValues {
+    // Pre-allocate with exact capacity for better performance
+    final result = List<dynamic>.filled(_states.length, null, growable: true);
+
+    for (int i = 0; i < _states.length; i++) {
+      final state = _states[i];
+      if (state is GroupCLIState) {
+        result[i] = state.selectedOptions;
+      } else if (state is SingleCLIState) {
+        result[i] = state.value;
+      }
+    }
+
+    return result.where((value) => value != null).toList();
+  }
 
   /// A broadcast stream of state changes that can be subscribed to.
   Stream<List<CLIState>> get stream => _controller.stream;
@@ -47,7 +67,18 @@ class StateManager {
   /// - [newState]: The CLIState to add to the collection
   void addMember(CLIState newState) {
     _states.add(newState);
+
+    // Update the lookup map if the state has a label
+    if (newState.label != null) {
+      _statesByLabel[newState.label] = newState;
+    }
+
     _controller.add(List.unmodifiable(_states));
+  }
+
+  /// Dispose resources when no longer needed
+  void dispose() {
+    _controller.close();
   }
 
   /// Retrieves a state value by its index in the collection.
@@ -62,12 +93,9 @@ class StateManager {
     if (index < 0 || index >= _states.length) {
       return null;
     }
-    if (_states[index] is GroupCLIState) {
-      return (_states[index] as GroupCLIState).selectedOptions;
-    } else if (_states[index] is SingleCLIState) {
-      return (_states[index] as SingleCLIState).value;
-    }
-    return null;
+
+    final state = _states[index];
+    return _extractValue(state);
   }
 
   /// Retrieves a state value by its label.
@@ -78,25 +106,39 @@ class StateManager {
   /// - [label]: The label of the state to retrieve
   ///
   /// Returns the value of the state with the specified label.
-  dynamic getStateValueByLabel(String label) {
-    for (final state in _states) {
-      if (state.label != null && state.label == label) {
-        if (state is GroupCLIState) {
-          return state.selectedOptions;
-        } else if (state is SingleCLIState) {
-          return state.value;
-        }
-      }
-    }
-    return null;
+  dynamic getStateValueByLabel(String? label) {
+    // Direct map lookup instead of list iteration
+    final state = _statesByLabel[label];
+    return state != null ? _extractValue(state) : null;
   }
 
   /// Replaces the entire state collection with a new list and broadcasts the update.
   ///
   /// Parameters:
-  /// - [newState]: The new list of states to use
-  void newList(List<CLIState> newState) {
-    _states = List.from(newState);
+  /// - [newStates]: The new list of states to use
+  void newList(List<CLIState> newStates) {
+    _states.clear();
+    _statesByLabel.clear();
+
+    _states.addAll(newStates);
+
+    // Update the lookup map
+    for (final state in newStates) {
+      if (state.label != null) {
+        _statesByLabel[state.label] = state;
+      }
+    }
+
     _controller.add(List.unmodifiable(_states));
+  }
+
+  /// Helper method to extract value from a state based on its type
+  dynamic _extractValue(CLIState state) {
+    if (state is GroupCLIState) {
+      return state.selectedOptions;
+    } else if (state is SingleCLIState) {
+      return state.value;
+    }
+    return null;
   }
 }

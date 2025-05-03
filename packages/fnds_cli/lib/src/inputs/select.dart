@@ -35,20 +35,28 @@ T select<T>({
   String recommendedText = '\x1B[38;5;240m(recommended)\x1B[0m',
   Indicators indicators = const Indicators(),
 }) {
+  // Validate inputs once at the beginning
   if (optionLabels != null && optionLabels.length != options.length) {
     throw ArgumentError('optionLabels and options must have the same length');
   }
+
   if (recommendedOption != null && !options.contains(recommendedOption)) {
     throw ArgumentError('recommendedOption must be one of the options');
   }
 
-  final int selectedIndex =
+  // Calculate the starting index once
+  final int recommendedIndex =
       recommendedOption != null ? options.indexOf(recommendedOption) : -1;
-  int currentIndex = selectedIndex == -1 ? 0 : selectedIndex;
 
+  int currentIndex = recommendedIndex >= 0 ? recommendedIndex : 0;
+  final int optionCount = options.length;
+  final int padding = width + gap;
+
+  // Prepare terminal
   stdin.echoMode = false;
   stdin.lineMode = false;
 
+  // Render the question once
   _renderQuestion(
     label: label,
     question: question,
@@ -56,43 +64,59 @@ T select<T>({
     gap: gap,
   );
 
-  final int padding = width + gap;
-  final int optionCount = options.length;
-  // ⬇️ **Hide the cursor**
+  // Hide cursor
   stdout.write('\x1B[?25l');
 
-  while (true) {
-    _renderOptions(
-      options: options,
-      optionLabels: optionLabels,
-      currentIndex: currentIndex,
-      padding: padding,
-      recommendedOption: recommendedOption,
-      indicators: indicators,
-      recommendedText: recommendedText,
-    );
+  try {
+    // Main selection loop
+    while (true) {
+      // Render options with pre-calculated values
+      _renderOptions(
+        options: options,
+        optionLabels: optionLabels,
+        currentIndex: currentIndex,
+        padding: padding,
+        recommendedOption: recommendedOption,
+        indicators: indicators,
+        recommendedText: recommendedText,
+      );
 
-    final input = _readKey();
+      final input = _readKey();
 
-    if (input.length == 3 && input[0] == 27 && input[1] == 91) {
-      if (input[2] == 65) {
-        currentIndex = (currentIndex - 1 + optionCount) % optionCount;
-      } else if (input[2] == 66) {
-        currentIndex = (currentIndex + 1) % optionCount;
+      // Process key input
+      if (input.length == 3 && input[0] == 27 && input[1] == 91) {
+        // Arrow keys (up/down navigation)
+        if (input[2] == 65) {
+          // Up arrow
+          currentIndex = (currentIndex - 1 + optionCount) % optionCount;
+        } else if (input[2] == 66) {
+          // Down arrow
+          currentIndex = (currentIndex + 1) % optionCount;
+        }
+      } else if (input.length == 1) {
+        if (input[0] == 10 || input[0] == 13) {
+          // Enter key
+          break; // Exit the loop when selection is made
+        }
       }
-    } else if (input.length == 1 && (input[0] == 10 || input[0] == 13)) {
-      break;
+
+      _clearOptions(optionCount);
     }
 
-    _clearOptions(optionCount);
+    // Return the selected value
+    final T selectedValue = options[currentIndex];
+
+    // Call the callback if provided
+    if (callback != null) {
+      final state = SingleCLIState<T>(label ?? 'selection', selectedValue);
+      callback(state);
+    }
+
+    return selectedValue;
+  } finally {
+    // Always ensure terminal is restored to original state
+    stdout.write('\x1B[?25h'); // Show cursor
+    stdin.lineMode = true;
+    stdin.echoMode = true;
   }
-
-  // ⬇️ **Restore the cursor**
-  stdout.write('\x1B[?25h');
-  stdin.lineMode = true;
-  stdin.echoMode = true;
-
-  final T selectedValue = options[currentIndex];
-  callback?.call(SingleCLIState<T>(label, selectedValue));
-  return selectedValue;
 }

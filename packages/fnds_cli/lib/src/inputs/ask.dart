@@ -29,6 +29,9 @@ T ask<T>({
   bool isSecretive = false,
   Function(SingleCLIState<T> values)? callback,
 }) {
+  // Calculate spacing once instead of repeatedly
+  final padding = ' ' * (width + gap);
+
   while (true) {
     _renderQuestion(
       label: label,
@@ -36,30 +39,38 @@ T ask<T>({
       width: IntWidth(width),
       gap: gap,
     );
-    stdout.write(' ' * (width + gap)); // Align user input
+    stdout.write(padding); // Align user input
 
-    String? input = _getInputWithPlaceholder(
+    final input = _getInputWithPlaceholder(
       defaultValue: defaultValue.toString(),
       width: width,
       gap: gap,
       isSecretive: isSecretive,
     );
 
-    if (input != null && input.isEmpty) {
-      callback?.call(SingleCLIState<T>(label, defaultValue));
+    // Early return for empty/default input
+    if (input == null || input.isEmpty) {
+      final result = SingleCLIState<T>(label ?? 'input', defaultValue);
+      callback?.call(result);
       return defaultValue;
     }
 
     try {
-      T value = _parseInput<T>(input!);
-      callback?.call(SingleCLIState<T>(label, value));
+      final value = _parseInput<T>(input);
+      final result = SingleCLIState<T>(label ?? 'input', value);
+      callback?.call(result);
       return value;
-    } catch (_) {
-      stdout.write('\x1B[1A\x1B[2K\r${' ' * (width + gap)}');
+    } catch (e) {
+      // Clear the current line and move cursor back
+      stdout.write('\x1B[1A\x1B[2K\r$padding');
+
+      // Display error message
+      final errorMessage =
+          'Invalid input. Expected ${T.toString()}: ${e.toString()}';
       if (error != null) {
-        error.call(T.toString());
+        error(errorMessage);
       } else {
-        print('\x1B[31m(x) Invalid input. Expected ${T.toString()}.\x1B[0m');
+        print('\x1B[31m(x) $errorMessage\x1B[0m');
       }
     }
   }

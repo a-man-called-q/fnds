@@ -26,12 +26,31 @@ List<T> multipleSelect<T>({
   Indicators indicators = const Indicators(),
   Function(GroupCLIState<T> values)? callback,
 }) {
-  List<bool> selectedOptions = List.generate(options.length, (index) => false);
+  // Validate inputs
+  if (optionLabels != null && optionLabels.length != options.length) {
+    throw ArgumentError('optionLabels and options must have the same length');
+  }
+
+  if (options.isEmpty) {
+    // Return empty list immediately if no options
+    final emptyResult = <T>[];
+    callback?.call(GroupCLIState<T>(label ?? 'multi-selection', emptyResult));
+    return emptyResult;
+  }
+
+  // Pre-calculate constants
+  final int padding = width + gap;
+  final int optionCount = options.length;
+
+  // Initialize selection state
+  final List<bool> selectedOptions = List.generate(optionCount, (_) => false);
   int currentIndex = 0;
 
+  // Configure terminal
   stdin.echoMode = false;
   stdin.lineMode = false;
 
+  // Render question once
   _renderQuestion(
     label: label,
     question: question,
@@ -39,48 +58,63 @@ List<T> multipleSelect<T>({
     gap: gap,
   );
 
-  final int padding = width + gap;
-  final int optionCount = options.length;
-
+  // Hide cursor during selection
   stdout.write('\x1B[?25l');
 
-  while (true) {
-    _renderMultipleOptions(
-      optionLabels: optionLabels,
-      options: options,
-      currentIndex: currentIndex,
-      padding: padding,
-      selectedOptions: selectedOptions,
-      indicators: indicators,
-    );
+  try {
+    while (true) {
+      // Render current state
+      _renderMultipleOptions(
+        optionLabels: optionLabels,
+        options: options,
+        currentIndex: currentIndex,
+        padding: padding,
+        selectedOptions: selectedOptions,
+        indicators: indicators,
+      );
 
-    final input = _readKey();
+      // Get user input
+      final input = _readKey();
 
-    if (_handleArrowKeyInput(input, optionCount, currentIndex)) {
-      currentIndex = _updateCurrentIndex(input, optionCount, currentIndex);
+      // Process arrow keys (navigation)
+      if (_handleArrowKeyInput(input, optionCount, currentIndex)) {
+        currentIndex = _updateCurrentIndex(input, optionCount, currentIndex);
+      }
+      // Process Enter key (confirm)
+      else if (_handleEnterKeyInput(input)) {
+        break;
+      }
+      // Process Space key (toggle selection)
+      else if (_handleSpacebarInput(input)) {
+        selectedOptions[currentIndex] = !selectedOptions[currentIndex];
+      }
+
+      // Clear for redrawing
       _clearOptions(optionCount);
-      continue;
     }
 
-    if (_handleEnterKeyInput(input)) {
-      break;
+    // Create result list efficiently
+    final List<T> selectedValues = <T>[];
+    for (int i = 0; i < options.length; i++) {
+      if (selectedOptions[i]) {
+        selectedValues.add(options[i]);
+      }
     }
 
-    if (_handleSpacebarInput(input)) {
-      selectedOptions[currentIndex] = !selectedOptions[currentIndex];
+    // Call callback if provided
+    if (callback != null) {
+      final state = GroupCLIState<T>(
+        label ?? 'multi-selection',
+        selectedValues,
+      );
+      callback(state);
     }
 
-    _clearOptions(optionCount);
+    return selectedValues;
+  } finally {
+    // Restore terminal state
+    stdout.write('\x1B[?25h'); // Show cursor
+    stdin.lineMode = true;
+    stdin.echoMode = true;
   }
-
-  stdout.write('\x1B[?25h');
-  stdin.lineMode = true;
-  stdin.echoMode = true;
-
-  final List<T> selectedValues =
-      options
-          .where((option) => selectedOptions[options.indexOf(option)])
-          .toList();
-  callback?.call(GroupCLIState<T>(label, selectedValues));
-  return selectedValues;
 }
